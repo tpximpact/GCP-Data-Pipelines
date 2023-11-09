@@ -11,7 +11,7 @@ requests = "^2.28.2"
 google-cloud-core = "^2.3.2"
 google-cloud-bigquery = "^3.5.0"
 google-cloud-secret-manager = "^2.15.1"
-pyarrow = "^11.0.0"
+pyarrow = "^14.0.1"
 pipedrive-python-lib = "^1.2.1"
 pandas-gbq = "^0.19.1"
 pyforecast = { git = 'https://github.com/urquha/py_forecast', branch = "master" }
