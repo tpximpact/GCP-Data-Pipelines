@@ -55,6 +55,7 @@ def main(data: dict, context):
         / (row["ends_on"] - row["starts_on"]),
         axis=1,
     )
+
     df["completed"] = df["completion_percentage"].apply(
         lambda x: "completed" if x == 1 else "not completed"
     )
