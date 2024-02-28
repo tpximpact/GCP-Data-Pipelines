@@ -18,7 +18,7 @@ def update_keys(dict_list, keys_to_update, new_keys):
         for old_key, new_key in zip(keys_to_update, new_keys):
             try:
                 dictionary[new_key] = dictionary.pop(old_key)
-            except:
+            except:  # noqa: E722
                 broken_keys.add((old_key, new_key))
         break
     print("Unable to change following keys:", broken_keys)
@@ -37,7 +37,7 @@ def load_config(project_id, service) -> dict:
 
 
 def get_option_from_key(key: str, options) -> str:
-    if type(key) == str:
+    if isinstance(key, str):
         if key.isnumeric():
             option = options[options["id"] == int(key)]["label"].values
             if len(option) > 0:
