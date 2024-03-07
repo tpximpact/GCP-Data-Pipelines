@@ -70,7 +70,7 @@ resource "google_cloudfunctions_function" "hibob_employees" {
   https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_trigger_hot.id
+    resource   = google_pubsub_topic.cloud_function_trigger_cold.id
   }
 
   environment_variables = {
