@@ -10,3 +10,6 @@ variable "env" {
   default = "dev"
 }
 
+variable "function_runtime" {
+  default = "python310"
+}

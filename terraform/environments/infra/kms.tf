@@ -1,6 +1,6 @@
 data "google_kms_key_ring" "dashboards_keyring" {
   name     = "dashboards_keyring"
-  location = "europe-west2"
+  location = var.region
 }
 
 resource "google_kms_crypto_key" "pub_sub_key" {
