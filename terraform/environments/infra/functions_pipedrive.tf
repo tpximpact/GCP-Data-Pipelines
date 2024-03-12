@@ -28,7 +28,6 @@ resource "google_cloudfunctions_function" "pipedrive_deals" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot.id
@@ -73,7 +72,6 @@ resource "google_cloudfunctions_function" "pipedrive_organisations" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_cold.id

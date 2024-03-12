@@ -28,7 +28,6 @@ resource "google_cloudfunctions_function" "forecast_assignments" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot.id
@@ -74,7 +73,6 @@ resource "google_cloudfunctions_function" "forecast_assignments_filled" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot_2.id
@@ -119,7 +117,6 @@ resource "google_cloudfunctions_function" "forecast_people" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_cold.id
@@ -164,7 +161,6 @@ resource "google_cloudfunctions_function" "forecast_projects" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot.id
@@ -210,7 +206,6 @@ resource "google_cloudfunctions_function" "forecast_placeholders" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot.id

@@ -29,7 +29,6 @@ resource "google_cloudfunctions_function" "harvest_timesheet" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot.id
@@ -75,7 +74,6 @@ resource "google_cloudfunctions_function" "harvest_users" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_cold.id
@@ -120,7 +118,6 @@ resource "google_cloudfunctions_function" "harvest_user_project_assignments" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_cold.id
@@ -166,7 +163,6 @@ resource "google_cloudfunctions_function" "harvest_projects" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_cold.id
@@ -211,7 +207,6 @@ resource "google_cloudfunctions_function" "harvest_clients" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_cold.id
@@ -256,7 +251,6 @@ resource "google_cloudfunctions_function" "harvest_expenses" {
 
   # Must match the function name in the cloud function `main.py` source code
   entry_point                  = "main"
-  https_trigger_security_level = "SECURE_ALWAYS"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot.id
