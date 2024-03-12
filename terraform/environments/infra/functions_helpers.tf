@@ -19,7 +19,7 @@ resource "google_storage_bucket_object" "helpers_months_columns" {
 
 resource "google_cloudfunctions_function" "helpers_months_columns" {
   name                = "helpers_months_columns_pipe"
-  runtime             = "python310" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 1024
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression

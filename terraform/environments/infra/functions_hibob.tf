@@ -19,7 +19,7 @@ resource "google_storage_bucket_object" "hibob_time_off" {
 
 resource "google_cloudfunctions_function" "hibob_time_off" {
   name                = "hibob_time_off_pipe"
-  runtime             = "python39" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 1024
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
@@ -59,7 +59,7 @@ resource "google_storage_bucket_object" "hibob_employees" {
 
 resource "google_cloudfunctions_function" "hibob_employees" {
   name                  = "hibob_employees_pipe"
-  runtime               = "python310"
+  runtime               = var.function_runtime
   available_memory_mb   = 1024
   timeout               = 540
   source_archive_bucket = data.google_storage_bucket.function_bucket.name

@@ -19,7 +19,7 @@ resource "google_storage_bucket_object" "pipedrive_deals" {
 
 resource "google_cloudfunctions_function" "pipedrive_deals" {
   name                = "pipedrive_deals_pipe"
-  runtime             = "python39" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 1024
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
@@ -63,7 +63,7 @@ resource "google_storage_bucket_object" "pipedrive_organisations" {
 
 resource "google_cloudfunctions_function" "pipedrive_organisations" {
   name                = "pipedrive_organisations_pipe"
-  runtime             = "python39" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 1024
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression

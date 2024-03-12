@@ -20,7 +20,7 @@ resource "google_storage_bucket_object" "harvest_timesheet" {
 
 resource "google_cloudfunctions_function" "harvest_timesheet" {
   name                = "harvest_timesheet_pipe"
-  runtime             = "python39" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 4096
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
@@ -65,7 +65,7 @@ resource "google_storage_bucket_object" "harvest_users" {
 
 resource "google_cloudfunctions_function" "harvest_users" {
   name                = "harvest_users_pipe"
-  runtime             = "python310" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 1024
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
@@ -109,7 +109,7 @@ resource "google_storage_bucket_object" "harvest_user_project_assignments" {
 
 resource "google_cloudfunctions_function" "harvest_user_project_assignments" {
   name                = "harvest_user_project_assignments_pipe"
-  runtime             = "python39" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 1024
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
@@ -154,7 +154,7 @@ resource "google_storage_bucket_object" "harvest_projects" {
 
 resource "google_cloudfunctions_function" "harvest_projects" {
   name                = "harvest_projects_pipe"
-  runtime             = "python39" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 1024
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
@@ -198,7 +198,7 @@ resource "google_storage_bucket_object" "harvest_clients" {
 
 resource "google_cloudfunctions_function" "harvest_clients" {
   name                = "harvest_clients_pipe"
-  runtime             = "python310" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 1024
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
@@ -242,7 +242,7 @@ resource "google_storage_bucket_object" "harvest_expenses" {
 
 resource "google_cloudfunctions_function" "harvest_expenses" {
   name                = "harvest_expenses_pipe"
-  runtime             = "python310" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 1024
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression

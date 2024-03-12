@@ -11,5 +11,5 @@ variable "env" {
 }
 
 variable "function_runtime" {
-  default = "python310"
+  default = "python311"
 }

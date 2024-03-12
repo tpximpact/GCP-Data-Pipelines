@@ -19,7 +19,7 @@ resource "google_storage_bucket_object" "forecast_assignments" {
 
 resource "google_cloudfunctions_function" "forecast_assignments" {
   name                = "forecast_assignments_pipe"
-  runtime             = "python39" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 512
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
@@ -64,7 +64,7 @@ resource "google_storage_bucket_object" "forecast_assignments_filled" {
 
 resource "google_cloudfunctions_function" "forecast_assignments_filled" {
   name                = "forecast_assignments_filled_pipe"
-  runtime             = "python310" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 1024
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
@@ -108,7 +108,7 @@ resource "google_storage_bucket_object" "forecast_people" {
 
 resource "google_cloudfunctions_function" "forecast_people" {
   name                = "forecast_people_pipe"
-  runtime             = "python39" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 512
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
@@ -152,7 +152,7 @@ resource "google_storage_bucket_object" "forecast_projects" {
 
 resource "google_cloudfunctions_function" "forecast_projects" {
   name                = "forecast_projects_pipe"
-  runtime             = "python39" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 512
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
@@ -197,7 +197,7 @@ resource "google_storage_bucket_object" "forecast_placeholders" {
 
 resource "google_cloudfunctions_function" "forecast_placeholders" {
   name                = "forecast_placeholders_pipe"
-  runtime             = "python39" # of course changeable
+  runtime             = var.function_runtime
   available_memory_mb = 512
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
