@@ -4,8 +4,7 @@ from google.cloud import secretmanager
 def harvest_headers(project_id, service):
     return {
         "User-Agent": "TPX Cloud Functions",
-        "Authorization": "Bearer "
-        + access_secret_version(project_id, "HARVEST_ACCESS_TOKEN"),
+        "Authorization": f"Bearer {access_secret_version(project_id, 'HARVEST_ACCESS_TOKEN')}",
         "Harvest-Account-ID": access_secret_version(project_id, "HARVEST_ACCOUNT_ID"),
         "service": service,
         "Content-Type": "application/json",
