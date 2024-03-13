@@ -126,13 +126,13 @@ def main(data: dict, context):
     )
     print("Deal options updated")
 
-    columns_to_drop = [] + unnamed_columns
+    columns_to_drop = unnamed_columns["key"].to_list()
     flat_deals = flat_deals.drop(columns=columns_to_drop, errors="ignore")
 
     write_to_bigquery(config, flat_deals, "WRITE_TRUNCATE")
 
 
-unnamed_columns = [
+UNNAMED_COLUMNS = [
     "d59c50f571c97868459bbe177d905d0781b8a804",
     "d59c50f571c97868459bbe177d905d0781b8a804_until",
     "3a6c5997697f11bbe73689dbe9aaa5f69c0faa82",
@@ -202,5 +202,6 @@ unnamed_columns = [
     "2383073d746496763df2889d6c6c9d2a87a63c1c",
     "0f591a719a85926d63d3f31ec81387f1d6f50cf7",
 ]
+
 if __name__ == "__main__":
     main({}, None)
