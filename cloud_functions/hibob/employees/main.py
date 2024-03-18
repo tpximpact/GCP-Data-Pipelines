@@ -21,7 +21,7 @@ def load_config(project_id, service) -> dict:
 
 
 def main(data: dict, context: dict = None):
-    service = "Data Pipeline - HiBob Time Off"
+    service = "Data Pipeline - HiBob Employees"
     config = load_config(project_id, service)
     df = get_employees(config)
     write_to_bigquery(config, df, "WRITE_TRUNCATE")
