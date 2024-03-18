@@ -27,7 +27,7 @@ resource "google_cloudfunctions_function" "helpers_months_columns" {
   source_archive_object = google_storage_bucket_object.helpers_months_columns.name
 
   # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
+  entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_cold.id

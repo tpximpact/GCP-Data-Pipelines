@@ -28,7 +28,7 @@ resource "google_cloudfunctions_function" "harvest_timesheet" {
   source_archive_object = google_storage_bucket_object.harvest_timesheet.name
 
   # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
+  entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot.id
@@ -73,7 +73,7 @@ resource "google_cloudfunctions_function" "harvest_users" {
   source_archive_object = google_storage_bucket_object.harvest_users.name
 
   # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
+  entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_cold.id
@@ -117,7 +117,7 @@ resource "google_cloudfunctions_function" "harvest_user_project_assignments" {
   source_archive_object = google_storage_bucket_object.harvest_user_project_assignments.name
 
   # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
+  entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_cold.id
@@ -162,7 +162,7 @@ resource "google_cloudfunctions_function" "harvest_projects" {
   source_archive_object = google_storage_bucket_object.harvest_projects.name
 
   # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
+  entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_cold.id
@@ -206,7 +206,7 @@ resource "google_cloudfunctions_function" "harvest_clients" {
   source_archive_object = google_storage_bucket_object.harvest_clients.name
 
   # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
+  entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_cold.id
@@ -250,7 +250,7 @@ resource "google_cloudfunctions_function" "harvest_expenses" {
   source_archive_object = google_storage_bucket_object.harvest_expenses.name
 
   # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
+  entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot.id

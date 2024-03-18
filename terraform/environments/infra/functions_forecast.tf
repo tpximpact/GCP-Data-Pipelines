@@ -27,7 +27,7 @@ resource "google_cloudfunctions_function" "forecast_assignments" {
   source_archive_object = google_storage_bucket_object.forecast_assignments.name
 
   # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
+  entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot.id
@@ -72,7 +72,7 @@ resource "google_cloudfunctions_function" "forecast_assignments_filled" {
   source_archive_object = google_storage_bucket_object.forecast_assignments_filled.name
 
   # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
+  entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot_2.id
@@ -116,7 +116,7 @@ resource "google_cloudfunctions_function" "forecast_people" {
   source_archive_object = google_storage_bucket_object.forecast_people.name
 
   # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
+  entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_cold.id
@@ -160,7 +160,7 @@ resource "google_cloudfunctions_function" "forecast_projects" {
   source_archive_object = google_storage_bucket_object.forecast_projects.name
 
   # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
+  entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot.id
@@ -205,7 +205,7 @@ resource "google_cloudfunctions_function" "forecast_placeholders" {
   source_archive_object = google_storage_bucket_object.forecast_placeholders.name
 
   # Must match the function name in the cloud function `main.py` source code
-  entry_point                  = "main"
+  entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
     resource   = google_pubsub_topic.cloud_function_trigger_hot.id
