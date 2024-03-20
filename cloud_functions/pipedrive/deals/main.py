@@ -89,7 +89,7 @@ def main(data: dict, context):
 
     unnamed_columns = column_names[column_names["key"].str.len() > 30]
     optioned_columns = column_names[column_names["options"].notnull()]
-    update_keys(
+    deals = update_keys(
         deals, unnamed_columns["key"].to_list(), unnamed_columns["name"].to_list()
     )
     deals_df = pd.DataFrame(deals).rename(
@@ -126,10 +126,9 @@ def main(data: dict, context):
     )
     print("Deal options updated")
 
-    # columns_to_drop = unnamed_columns["key"].to_list()
-    # flat_deals = flat_deals.drop(columns=columns_to_drop, errors="ignore")
+    columns_to_drop = unnamed_columns["key"].to_list()
+    flat_deals = flat_deals.drop(columns=columns_to_drop, errors="ignore")
 
-    flat_deals = flat_deals.replace("00:00:00", None)
     write_to_bigquery(config, flat_deals, "WRITE_TRUNCATE")
 
 
