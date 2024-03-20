@@ -129,6 +129,7 @@ def main(data: dict, context):
     # columns_to_drop = unnamed_columns["key"].to_list()
     # flat_deals = flat_deals.drop(columns=columns_to_drop, errors="ignore")
 
+    flat_deals = flat_deals.replace("00:00:00", None)
     write_to_bigquery(config, flat_deals, "WRITE_TRUNCATE")
 
 
