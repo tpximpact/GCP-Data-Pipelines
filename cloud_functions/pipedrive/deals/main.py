@@ -12,17 +12,15 @@ if not project_id:
     project_id = "tpx-consulting-dashboards"
 
 
-def update_keys(dict_list, keys_to_update, new_keys):
+def update_keys(dictionary: dict, keys_to_update: list, new_keys: list) -> dict:
     broken_keys = set()
-    for dictionary in dict_list:
-        for old_key, new_key in zip(keys_to_update, new_keys):
-            try:
-                dictionary[new_key] = dictionary.pop(old_key)
-            except:  # noqa: E722
-                broken_keys.add((old_key, new_key))
-        break
+    for old_key, new_key in zip(keys_to_update, new_keys):
+        try:
+            dictionary[new_key] = dictionary.pop(old_key)
+        except:  # noqa: E722
+            broken_keys.add((old_key, new_key))
     print("Unable to change following keys:", broken_keys)
-    return dict_list
+    return dictionary
 
 
 def load_config(project_id, service) -> dict:
@@ -89,14 +87,19 @@ def main(data: dict, context):
 
     unnamed_columns = column_names[column_names["key"].str.len() > 30]
     optioned_columns = column_names[column_names["options"].notnull()]
-    deals = update_keys(
-        deals, unnamed_columns["key"].to_list(), unnamed_columns["name"].to_list()
-    )
-    deals_df = pd.DataFrame(deals).rename(
-        columns=lambda x: x.replace(
+    updated_deals = [
+        update_keys(
+            deal, unnamed_columns["key"].to_list(), unnamed_columns["name"].to_list()
+        )
+        for deal in deals
+    ]
+    deals_df = pd.DataFrame(updated_deals).rename(
+        columns=lambda x: str(x)
+        .replace(
             " ",
             "_",
-        ).lower()
+        )
+        .lower()
     )
     nested_columns = [
         "creator_user_id",
