@@ -1,24 +1,14 @@
-import asyncio
-import logging
 import os
 from datetime import date
-from typing import Any
 
-import backoff
-import httpx
 import pandas as pd
+import requests
 
 from data_pipeline_tools.auth import hibob_headers
-from data_pipeline_tools.util import read_from_bigquery, write_to_bigquery
-
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger("httpx")
-logger.setLevel(logging.DEBUG)
+from data_pipeline_tools.util import write_to_bigquery
 
 project_id = os.environ.get("GOOGLE_CLOUD_PROJECT") or input("Enter GCP project ID: ")
 current_year = date.today().year
-AUTH = "Basic U0VSVklDRS0xMjIyOTozMWtTQUtlZjlGbkQxNDFucUtLOFVyNHhYelBDN29kc09FWDVhWXNR"
-QUERY = f"SELECT id, contract FROM `{project_id}.hibob_raw.employees`"
 DATES = [
     date(current_year, 5, 1),
     date(current_year, 7, 1),
@@ -30,66 +20,55 @@ DATES = [
 
 def load_config(project_id, service) -> dict:
     return {
-        "table_name": os.environ.get("TABLE_NAME"),
-        "dataset_id": os.environ.get("DATASET_ID"),
-        "location": os.environ.get("TABLE_LOCATION"),
+        "table_name": os.environ.get("TABLE_NAME") or "time_off_balances",
+        "dataset_id": os.environ.get("DATASET_ID") or "hibob_raw",
+        "location": os.environ.get("TABLE_LOCATION") or "europe-west2",
         "headers": hibob_headers(project_id, service),
     }
 
 
-@backoff.on_exception(backoff.expo, httpx.HTTPStatusError, max_time=30)
-async def get_employee_balance(
-    config: dict,
-    semaphore: asyncio.Semaphore,
-    employee_id: str,
-    policy_type: str,
-    balance_date: date = date.today(),
-) -> dict[str, Any]:
-    url = f"https://api.hibob.com/v1/timeoff/employees/{employee_id}/balance?policyType={policy_type}&date={balance_date.isoformat()}"
-    async with semaphore, httpx.AsyncClient() as client:
-        response = await client.get(
-            url,
-            headers={
-                "accept": "application/json",
-                "authorization": AUTH,
-            },
-        )
-        response.raise_for_status()
-        if response.status_code == 200 and response.json():
-            return response.json()
-        return {}
+def get_policy_types(config: dict[str:str]) -> list[str]:
+    url = "https://api.hibob.com/v1/timeoff/policy-types"
+    response = requests.get(url, headers=config["headers"])
+    return [
+        policy_type.strip()
+        for policy_type in response.json()["policyTypes"]
+        if "holiday" in policy_type.lower()
+    ]
 
 
-async def main(data: dict, context: dict = None):
+def main(data: dict, context: dict = None):
     service = "Data Pipeline - HiBob Time Off Balances"
     config = load_config(project_id, service)
-    policy_types = ["TPXimpact Holiday"]
-    employees = read_from_bigquery(project_id, QUERY)
+    # policy_types = get_policy_types(config)
+    url = f"https://api.hibob.com/v1/timeoff/requests/changes?since={current_year}-01-01T00%3A00%3A00.000Z&includePending=false"
+    response = requests.get(url, headers=config["headers"])
+    df = pd.DataFrame(response.json()["changes"])
+    # df.drop(
+    #     ["employeeEmail", "requestId", "employeeDisplayName", "changeReason"],
+    #     axis=1,
+    #     inplace=True,
+    # )
+    # df = df[df["policyTypeDisplayName"].isin(policy_types)]
+    # df = df[df["changeType"] == "Created"]
+    # df["startDate"] = pd.to_datetime(df["startDate"])
+    # df["endDate"] = pd.to_datetime(df["endDate"])
 
-    semaphore = asyncio.Semaphore(10)
-    balances = []
-    for _, employee in employees.iterrows():
-        if "TPX" in employee["contract"]:
-            for policy_type in policy_types:
-                tasks = []
+    # results = []
+    # for balance_date in DATES:
+    #     balance_date = pd.Timestamp(balance_date)
+    #     active_requests = df[
+    #         (df["startDate"] <= balance_date) & (df["endDate"] >= balance_date)
+    #     ]
 
-                for balance_date in DATES:
-                    tasks.append(
-                        get_employee_balance(
-                            config,
-                            semaphore,
-                            employee["id"],
-                            policy_type,
-                            balance_date,
-                        )
-                    )
-                balances.extend(await asyncio.gather(*tasks))
-                asyncio.sleep(0.5)
-
-    balances = await asyncio.gather(*tasks)
-    df = pd.DataFrame([balance for balance in balances if balance])
+    #     total_days_per_employee = (
+    #         active_requests.groupby("employeeId")["totalDuration"].sum().reset_index()
+    #     )
+    #     total_days_per_employee["date"] = balance_date
+    #     results.append(total_days_per_employee)
     write_to_bigquery(config, df, "WRITE_TRUNCATE")
+    # write_to_bigquery(config, pd.concat(results, ignore_index=True), "WRITE_TRUNCATE")
 
 
 if __name__ == "__main__":
-    asyncio.run(main({}))
+    main({})
