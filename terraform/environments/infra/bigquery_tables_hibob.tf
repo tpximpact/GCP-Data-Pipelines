@@ -36,3 +36,22 @@ resource "google_bigquery_table" "employees" {
   }
 }
 
+resource "google_bigquery_table" "time_off_policies" {
+  dataset_id = google_bigquery_dataset.hibob_raw.dataset_id
+  table_id   = "employees"
+
+  time_partitioning {
+    type = "DAY"
+  }
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = false
+
+  encryption_configuration {
+    kms_key_name = google_kms_crypto_key.bigquery_key.id
+  }
+}
+
