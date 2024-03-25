@@ -38,7 +38,7 @@ resource "google_bigquery_table" "employees" {
 
 resource "google_bigquery_table" "time_off_policies" {
   dataset_id = google_bigquery_dataset.hibob_raw.dataset_id
-  table_id   = "employees"
+  table_id   = "time_off_policies"
 
   time_partitioning {
     type = "DAY"
