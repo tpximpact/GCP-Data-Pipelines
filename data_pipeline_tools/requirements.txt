@@ -1,0 +1,8 @@
+pandas
+google-cloud-core
+google-cloud-bigquery
+google-cloud-secret-manager
+holidays
+aiohttp
+forecast
+pandas-gbq

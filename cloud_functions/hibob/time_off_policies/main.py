@@ -39,7 +39,6 @@ def main(data: dict, context: dict = None):
             policies.append(response.json())
     df = pd.DataFrame(policies)
     df = df[["name", "allowance"]]
-
     write_to_bigquery(config, df, "WRITE_TRUNCATE")
 
 
