@@ -59,6 +59,7 @@ clients = [
     "TPX Engineering Team",
     "Panoply",
     "TPXimpact D&I",
+    "TPXimpact Central",
 ]
 tasks = ["Account Development", "Travel Time"]
 
