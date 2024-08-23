@@ -61,7 +61,7 @@ clients = [
     "TPXimpact D&I",
     "TPXimpact Central",
 ]
-tasks = ["Account Development", "Travel Time"]
+tasks = ["Account Development", "Travel Time", "Delivery - Non Billable"]
 
 
 def get_utilisation(row):
