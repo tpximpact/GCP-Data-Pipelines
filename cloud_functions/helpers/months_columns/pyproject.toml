@@ -11,7 +11,7 @@ python = "^3.10"
 google-cloud-core = "^2.3.2"
 google-cloud-bigquery = "^3.5.0"
 google-cloud-secret-manager = "^2.15.1"
-pyarrow = "^11.0.0"
+pyarrow = "^14.0.1"
 pandas-gbq = "^0.19.1"
 data_pipeline_tools = { git = "https://github.com/tpximpact/GCP-Data-Pipelines.git", branch = "main" }
 pandas = "^1.5.3"
