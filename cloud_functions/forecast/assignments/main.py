@@ -1,103 +1,155 @@
+"""Forecast Assignments data pipeline."""
+
 import copy
-import pandas as pd
-import os
 from datetime import datetime, timedelta
+from os import getenv
 
-from data_pipeline_tools.forecast_tools import forecast_client
-from data_pipeline_tools.util import unwrap_forecast_response, write_to_bigquery
+import pandas as pd
+from data_pipeline_tools.forecast_tools import forecast_client, unwrap_forecast_response
+from data_pipeline_tools.util import write_to_bigquery
+
+START_DATE = datetime(2021, 4, 1)
+
+project_id = getenv("GOOGLE_CLOUD_PROJECT") or "tpx-consulting-dashboards"
 
 
-project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
-if not project_id:
-    project_id = input("Enter GCP project ID: ")
+def load_config(project_id: str, service: str) -> dict[str, str]:
+    """Load config for the pipeline.
 
+    Args:
+    ----
+        project_id (str): Project ID
+        service (str): Service name
 
-def load_config(project_id, service) -> dict:
+    Returns:
+    -------
+        dict[str, str]: Config
+
+    """
     return {
-        "dataset_id": os.environ.get("DATASET_ID"),
+        "dataset_id": getenv("DATASET_ID"),
         "gcp_project": project_id,
-        "table_name": os.environ.get("TABLE_NAME"),
-        "location": os.environ.get("TABLE_LOCATION"),
+        "table_name": getenv("TABLE_NAME"),
+        "location": getenv("TABLE_LOCATION"),
         "service": service,
     }
 
 
-def main(data: dict, context: dict = None):
-    service = "Data Pipeline - Forecast Assignments"
+def main(data: dict = None, context: dict = None) -> None:  # noqa: ARG001, RUF013
+    """Run Forecast Assignments data pipeline.
+
+    Arguments are not used, but required by the Cloud Function framework.
+
+    Args:
+    ----
+        data (dict): Data dictionary
+        context (dict): Context dictionary
+
+    """
+    service = "Data Pipeline - Forecast Assignments (Active and Inactive)"
     config = load_config(project_id, service)
     client = forecast_client(project_id)
 
-    start_date = datetime(2021, 4, 1)
+    start_date = START_DATE
 
     assignments_list = []
     while start_date < datetime.today() + timedelta(days=800):
         end_date = start_date + timedelta(days=179)
-        assignments_resp = unwrap_forecast_response(
+        assignments_active = unwrap_forecast_response(
             client.get_assignments(
                 start_date=start_date.strftime("%Y-%m-%d"),
                 end_date=end_date.strftime("%Y-%m-%d"),
-            )
+            ),
+        )
+        assignments_inactive = unwrap_forecast_response(
+            client.get_assignments(
+                start_date=start_date.strftime("%Y-%m-%d"),
+                end_date=end_date.strftime("%Y-%m-%d"),
+                state="inactive",
+            ),
         )
         start_date += timedelta(days=180)
-        assignments_list += assignments_resp
+        assignments_list += assignments_active + assignments_inactive
 
     assignments_df = pd.DataFrame(assignments_list)
     if len(assignments_list) > 0:
         forecast_assignment_data = expand_assignments_rows(assignments_df)
 
-        # forecast_assignment_data = forecast_assignment_data[
-        #     forecast_assignment_data["allocation"].notnull()
-        # ].reset_index(drop=True)
+        forecast_assignment_data = forecast_assignment_data[pd.to_datetime(forecast_assignment_data["end_date"]) > START_DATE]
 
-        forecast_assignment_data["hours"] = (
-            forecast_assignment_data["allocation"] / 3600
-        )
+        forecast_assignment_data["hours"] = forecast_assignment_data["allocation"] / 3600
         forecast_assignment_data["days"] = forecast_assignment_data["hours"] / 8
 
-    columns_to_drop = []
-    forecast_assignment_data = forecast_assignment_data.drop(
-        columns=columns_to_drop, errors="ignore"
-    )
-    write_to_bigquery(config, forecast_assignment_data, "WRITE_TRUNCATE")
-    print("Done")
+    write_to_bigquery(config, forecast_assignment_data.drop_duplicates(), "WRITE_TRUNCATE")
 
 
-def expand_assignments_rows(df):
-    # When an assignment is entered, it can be put in for a single day or multiple.
-    # For entries spanning across multiple days, this function converts to single day entries and returns the dataframe.
-    if "placeholder_id" in df.columns:
-        df = df.drop(columns=["placeholder_id"])
-    rows_to_edit = df[df["start_date"] != df["end_date"]]
-    single_assignment_rows = df[df["start_date"] == df["end_date"]]
-    edited_rows = []
+def expand_assignments_rows(ass_df: pd.DataFrame) -> pd.DataFrame:
+    """Expand assignments spanning multiple days to single day assignments.
 
-    for _, row in rows_to_edit.iterrows():
-        # get the times
-        end_date = datetime.strptime(row["end_date"], "%Y-%m-%d")
-        start_date = datetime.strptime(row["start_date"], "%Y-%m-%d")
+    Args:
+    ----
+        ass_df (pd.DataFrame): DataFrame of assignments
 
-        dates = get_dates(start_date, end_date)
+    Returns:
+    -------
+        pd.DataFrame: DataFrame with single day assignments
 
-        for date in dates:
-            edited_rows.append(make_assignments_row(copy.copy(row), date))
+    """
+    if "placeholder_id" in ass_df.columns:
+        ass_df = ass_df.drop(columns=["placeholder_id"])
+    rows_to_edit = ass_df[ass_df["start_date"] != ass_df["end_date"]]
+    single_assignment_rows = ass_df[ass_df["start_date"] == ass_df["end_date"]]
+
+    edited_rows = [
+        set_dates_in_row(copy.copy(row), weekday)
+        for _, row in rows_to_edit.iterrows()
+        for weekday in get_weekdays(
+            datetime.strptime(row["start_date"], "%Y-%m-%d"),
+            datetime.strptime(row["end_date"], "%Y-%m-%d"),
+        )
+    ]
 
     return pd.concat([single_assignment_rows, pd.DataFrame(edited_rows)])
 
 
-def get_dates(start_date: datetime, end_date: datetime) -> list:
-    date = copy.copy(start_date)
+def get_weekdays(start_date: datetime, end_date: datetime) -> list[datetime]:
+    """Get list of weekdays between start and end dates.
+
+    Args:
+    ----
+        start_date (datetime): Start date
+        end_date (datetime): End date
+
+    Returns:
+    -------
+        list: List of weekday dates
+
+    """
+    start = copy.copy(start_date)
     dates_list = []
-    while date <= end_date:
-        if date.weekday() < 5:
-            dates_list.append(date)
-        date = date + timedelta(days=1)
+    while start <= end_date:
+        if start.weekday() < 5:  # noqa: PLR2004
+            dates_list.append(start)
+        start += timedelta(days=1)
     return dates_list
 
 
-def make_assignments_row(row: pd.Series, date: datetime) -> pd.Series:
-    string_date = datetime.strftime(date, "%Y-%m-%d")
-    row["start_date"] = string_date
-    row["end_date"] = string_date
+def set_dates_in_row(row: pd.Series, date: datetime) -> pd.Series:
+    """Set the start and end dates in a row to a specific date.
+
+    Args:
+    ----
+        row (pd.Series): Row to convert
+        date (datetime): Date to set
+
+    Returns:
+    -------
+        pd.Series: Updated row
+
+    """
+    date_string = datetime.strftime(date, "%Y-%m-%d")
+    row["start_date"] = date_string
+    row["end_date"] = date_string
     return row
 
 

@@ -1,0 +1,11 @@
+[project]
+name = "GCP-Data-Pipelines"
+version = "1.0"
+description = "A collection of Data Pipelines for TPXImpact, deployed as cloud functions to GCP."
+
+[tool.ruff]
+select = ["ALL"]
+ignore = ["TRY", "EM101", "DTZ", "INP001", "T201"]
+line-length = 150
+show-fixes = true
+target-version = "py311"

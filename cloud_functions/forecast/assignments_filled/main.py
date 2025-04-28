@@ -1,60 +1,79 @@
-import os
-from data_pipeline_tools.util import write_to_bigquery, read_from_bigquery
-from data_pipeline_tools.holidays import get_uk_holidays
-from datetime import datetime
-import pandas as pd
+"""Forecast Assignments Filled data pipeline."""
+
 import calendar
+from datetime import datetime
+from os import getenv
+
+import pandas as pd
+from data_pipeline_tools.holiday import get_uk_holidays
+from data_pipeline_tools.util import read_from_bigquery, write_to_bigquery
+
+project_id = getenv("GOOGLE_CLOUD_PROJECT") or "tpx-consulting-dashboards"
+FY_START_MONTH = 4
+FRIDAY = 4
+FIRST_YEAR = 2022
+CURRENT_YEAR = datetime.now().year - (1 if datetime.now().month < FY_START_MONTH else 0)
 
 
-project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
-if not project_id:
-    project_id = input("Enter GCP project ID: ")
+def load_config(project_id: str, service: str) -> dict[str, str]:
+    """Load config for the pipeline.
 
+    Args:
+    ----
+        project_id (str): Project ID
+        service (str): Service name
 
-def load_config(project_id, service) -> dict:
+    Returns:
+    -------
+        dict[str, str]: Config
+
+    """
     return {
-        "dataset_id": os.environ.get("DATASET_ID"),
+        "dataset_id": getenv("DATASET_ID"),
         "gcp_project": project_id,
-        "table_name": os.environ.get("TABLE_NAME"),
-        "location": os.environ.get("TABLE_LOCATION"),
+        "table_name": getenv("TABLE_NAME"),
+        "location": getenv("TABLE_LOCATION"),
         "service": service,
     }
 
 
-def main(data: dict, context: dict = None):
+def main(data: dict = None, context: dict = None) -> None:  # noqa: ARG001, RUF013
+    """Run Forecast Assignments Filled data pipeline.
+
+    Arguments are not used, but required by the Cloud Function framework.
+
+    Args:
+    ----
+        data (dict): Data dictionary
+        context (dict): Context dictionary
+
+    """
     service = "Data Pipeline - Forecast Assignments Filled"
     config = load_config(project_id, service)
-    year = datetime.now().year
-    month = datetime.now().month
+    max_year = CURRENT_YEAR + 2
 
-    if month < 4: 
-        year -= 1    
-    
-    bank_holidays = [
-        date.strftime('%Y-%m-%d') 
-        for year in range(2022, year+2) 
-        for date in get_uk_holidays(year)['spent_date']
-    ]  
-    
-    days = list(set(get_dates_list()) - set(bank_holidays))
-    print(days[0], "-", days[-1])
+    bank_holidays = [date.strftime("%Y-%m-%d") for year in range(FIRST_YEAR, max_year) for date in get_uk_holidays(year)["spent_date"]]
 
-        
-    QUERY = f"""
+    date_range = sorted(set(get_weekdays_in_fy(2)) - set(bank_holidays))
+
+    forecast_query = f"""
     SELECT * FROM `{config['gcp_project']}.Forecast_Raw.assignments`
-    WHERE DATE(start_date) > "2022-03-31"
-    AND DATE(start_date) < "{year+2}-03-31"
-    """
-    df = read_from_bigquery(project_id, QUERY)
-    Q2 = f"""SELECT id FROM `{config['gcp_project']}.Forecast_Raw.people`
-    WHERE archived = false"""
-    people_df = read_from_bigquery(project_id, Q2)
+    WHERE DATE(start_date) > "{FIRST_YEAR}-03-31"
+    AND DATE(start_date) < "{max_year}-03-31"
+    """  # noqa: S608
+    forecast_df = read_from_bigquery(project_id, forecast_query)
+
+    hibob_people_query = f"""
+    SELECT id FROM `{config['gcp_project']}.Forecast_Raw.people`
+    WHERE archived = false
+    """  # noqa: S608
+    people_df = read_from_bigquery(project_id, hibob_people_query)
 
     entries = []
     for person_id in people_df["id"].to_list():
-        temp_df = df[df["person_id"] == person_id]
+        temp_df = forecast_df[forecast_df["person_id"] == person_id]
         already_filled_dates = temp_df["start_date"].to_list()
-        blank_dates = [x for x in days if x not in already_filled_dates]
+        blank_dates = [x for x in date_range if x not in already_filled_dates]
 
         for index, day in enumerate(blank_dates):
             entries.append(
@@ -72,63 +91,34 @@ def main(data: dict, context: dict = None):
                     "active_on_days_off": False,
                     "hours": 8.0,
                     "days": 1,
-                }
+                },
             )
 
-    final_df = pd.concat([df, pd.DataFrame(entries)])
-    write_to_bigquery(config, final_df, "WRITE_TRUNCATE")
+    write_to_bigquery(config, pd.concat([forecast_df, pd.DataFrame(entries)]), "WRITE_TRUNCATE")
 
 
-def get_dates_list():
-    # Define the financial year start month and day
-    financial_year_start_month = 4
+def get_weekdays_in_fy(number_of_years: int = 1) -> list[str]:
+    """Get all weekdays for a given number of financial years starting from the current one.
 
-    # Get the current date
-    current_date = datetime.now().date()
-    current_year = current_date.year
-    if current_date.month < financial_year_start_month:
-        current_year = current_date.year - 1
-    months = (
-        [datetime(current_year, x, 1) for x in range(4, 13)]
-        + [datetime(current_year + 1, x, 1) for x in range(1, 13)]
-        + [datetime(current_year + 2, x, 1) for x in range(1, 4)]
-    )
-    days = []
-    for month in months:
-        days += get_weekdays(month.year, month.month)
-    
-    return days
+    Args:
+    ----
+        number_of_years (int): Number of financial years to include
 
+    Returns:
+    -------
+        list[str]: List of weekdays
 
-def get_weekdays(year, month):
-    # Get the number of days in the month and the weekday of the first day of the month
-    first_day = 1
-    num_days = calendar.monthrange(year, month)[1]
-    first_weekday = calendar.weekday(year, month, first_day)
+    """
 
-    weekdays = []
-    # Determine the day number of the first weekday in the month
+    def get_weekdays(year: int, month: int) -> list[str]:
+        return [
+            datetime(year, month, day).strftime("%Y-%m-%d")
+            for day in range(1, calendar.monthrange(year, month)[1] + 1)
+            if calendar.weekday(year, month, day) <= FRIDAY
+        ]
 
-    if first_weekday < 5:  # Monday = 0, Friday = 4
-        for x in range(5 - first_weekday):
-            weekdays.append(datetime(year, month, x + 1).strftime("%Y-%m-%d"))
-            first_day += 1
-    if first_weekday == 6:
-        first_day += 1
-    else:
-        first_day += 2
-
-    # Generate a list of all the weekdays in the month
-
-    for days in range(first_day, num_days + 1, 7):
-        weekdays.extend(
-            [
-                datetime(year, month, day).strftime("%Y-%m-%d")
-                for day in range(days, min(days + 5, num_days + 1))
-            ]
-        )
-
-    return weekdays
+    months = [datetime(CURRENT_YEAR + i // 12, i % 12 + 1, 1) for i in range(FY_START_MONTH - 1, FY_START_MONTH - 1 + number_of_years * 12)]
+    return [day for month in months for day in get_weekdays(month.year, month.month)]
 
 
 if __name__ == "__main__":

@@ -1,48 +1,114 @@
-import os
+"""Hibob Employees data pipeline."""
+
+from os import getenv
 
 import pandas as pd
 import requests
-
 from data_pipeline_tools.auth import hibob_headers
 from data_pipeline_tools.util import write_to_bigquery
 
-project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
-if not project_id:
-    project_id = input("Enter GCP project ID: ")
+project_id = getenv("GOOGLE_CLOUD_PROJECT") or "tpx-consulting-dashboards"
 
 
-def load_config(project_id, service) -> dict:
+def load_config(project_id: str, service: str) -> dict[str, str]:
+    """Load config for the pipeline.
+
+    Args:
+    ----
+        project_id (str): Project ID
+        service (str): Service name
+
+    Returns:
+    -------
+        dict[str, str]: Config
+
+    """
     return {
-        "table_name": os.environ.get("TABLE_NAME"),
-        "dataset_id": os.environ.get("DATASET_ID"),
-        "location": os.environ.get("TABLE_LOCATION"),
+        "table_name": getenv("TABLE_NAME"),
+        "dataset_id": getenv("DATASET_ID"),
+        "location": getenv("TABLE_LOCATION"),
         "headers": hibob_headers(project_id, service),
     }
 
 
-def main(data: dict, context: dict = None):
+def main(data: dict = None, context: dict = None) -> None:  # noqa: ARG001, RUF013
+    """Run Hibob Employees data pipeline.
+
+    Arguments are not used, but required by the Cloud Function framework.
+
+    Args:
+    ----
+        data (dict): Data dictionary
+        context (dict): Context dictionary
+
+    """
     service = "Data Pipeline - HiBob Employees"
     config = load_config(project_id, service)
-    df = get_employees(config)
-    write_to_bigquery(config, df, "WRITE_TRUNCATE")
+    write_to_bigquery(config, pd.DataFrame(get_employees(config)), "WRITE_TRUNCATE")
 
 
-def get_employees(config: dict):
-    cols_to_keep = [
-        "email",
-        "id",
-        "displayName",
-        "managerId",
-        "secondLevelManagerId",
-        "contract",
+def get_employees(config: dict[str, str]) -> list[dict[str, str]]:
+    """Get all employees from Hibob.
+
+    Args:
+    ----
+        config (dict[str, str]): Config
+
+    Returns:
+    -------
+        list[dict[str, str]]: Employees
+
+    """
+    url = "https://api.hibob.com/v1/people/search"
+    bob_fields = [
+        "root.id",
+        "root.email",
+        "root.displayName",
+        "root.fullName",
+        "work.manager",
+        "work.secondLevelManager",
+        "work.siteId",
+        "work.startDate",
+        "work.customColumns.column_1712065124837",  # department
+        "work.customColumns.column_1712065102576",  # team
     ]
-    url = "https://api.hibob.com/v1/profiles"
-    response = requests.get(url, headers=config["headers"]).json()
-    df = pd.DataFrame(response["employees"])
-    df["managerId"] = df["work"].apply(lambda x: x.get("manager"))
-    df["secondLevelManagerId"] = df["work"].apply(lambda x: x.get("secondLevelManager"))
-    df["contract"] = df["work"].apply(lambda x: x.get("site"))
-    return df[cols_to_keep]
+
+    response = requests.post(
+        url,
+        headers=config["headers"],
+        json={
+            "fields": bob_fields,
+            "humanReadable": "APPEND",
+            "showInactive": True,
+        },
+        timeout=10,
+    )
+    return [
+        {
+            "email": employee["email"],
+            "id": employee["id"],
+            "displayName": employee["displayName"],
+            "managerId": employee["work"]["manager"],
+            "secondLevelManagerId": employee["work"]["secondLevelManager"],
+            "contract": employee["humanReadable"]["work"]["siteId"],
+            "startDate": employee["work"]["startDate"],
+            "department": employee["humanReadable"]["work"]["customColumns"]["column_1712065124837"],
+            "team": employee["humanReadable"]["work"]["customColumns"]["column_1712065102576"],
+        }
+        if employee["humanReadable"]["work"].get("customColumns")
+        else {
+            "email": employee["email"],
+            "id": employee["id"],
+            "displayName": employee["displayName"],
+            "managerId": employee["work"]["manager"],
+            "secondLevelManagerId": employee["work"]["secondLevelManager"],
+            "contract": employee["humanReadable"]["work"]["siteId"],
+            "startDate": employee["work"]["startDate"],
+            "department": "",
+            "team": "",
+        }
+        for employee in response.json()["employees"]
+    ]
 
 
 if __name__ == "__main__":

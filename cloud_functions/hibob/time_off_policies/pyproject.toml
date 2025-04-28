@@ -1,19 +1,12 @@
-[tool.poetry]
-name = "time-off-policies"
-version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
-readme = "README.md"
+[project]
+name = "hibob-time-off-policies"
+version = "1.0.0"
+description = "Hibob Time Off Policies data pipeline."
+authors = ["Andy Urquhart <andy.urquhart@tpximpact.com>", "Balazs Roman <balazs.roman@tpximpact.com>"]
+dependencies = [
+    "data-pipeline-tools>=1.0",
+    "httpx>=0.28.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-data_pipeline_tools = { git = "https://github.com/tpximpact/GCP-Data-Pipelines.git", branch = "main" }
-requests = "^2.28.2"
-pandas = "^1.5.3"
-google-cloud-core = "^2.3.2"
-google-cloud-secret-manager = "^2.15.1"
-pandas-gbq = "^0.19.1"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.uv.sources]
+data-pipeline-tools = { git = "https://github.com/tpximpact/data-pipeline-tools" }
