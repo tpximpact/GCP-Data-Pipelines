@@ -1,61 +1,87 @@
-import os
+"""Pipedrive Deals data pipeline."""
+
+from os import getenv
 
 import pandas as pd
-from pipedrive.client import Client
-
 from data_pipeline_tools.auth import pipedrive_access_token
 from data_pipeline_tools.util import flatten_columns, write_to_bigquery
+from pipedrive.client import Client
 
-project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
-if not project_id:
-    # project_id = input("Enter GCP project ID: ")
-    project_id = "tpx-consulting-dashboards"
+project_id = getenv("GOOGLE_CLOUD_PROJECT") or "tpx-consulting-dashboards"
 
-
-def update_keys(dictionary: dict, keys_to_update: list, new_keys: list) -> dict:
-    broken_keys = set()
-    for old_key, new_key in zip(keys_to_update, new_keys):
-        try:
-            dictionary[new_key] = dictionary.pop(old_key)
-        except:  # noqa: E722
-            broken_keys.add((old_key, new_key))
-    print("Unable to change following keys:", broken_keys)
-    return dictionary
+UNNAMED_KEY_MIN_LENGTH = 30
+COLUMN_MAPPING = {
+    "Source origin": "origin",
+    "Source channel": "channel",
+}
 
 
-def load_config(project_id, service) -> dict:
+def load_config(project_id: str, service: str) -> dict[str, str]:
+    """Load config for the pipeline.
+
+    Args:
+    ----
+        project_id (str): Project ID
+        service (str): Service name
+
+    Returns:
+    -------
+        dict[str, str]: Config
+
+    """
     return {
         "auth_token": pipedrive_access_token(project_id),
-        "dataset_id": os.environ.get("DATASET_ID"),
+        "dataset_id": getenv("DATASET_ID"),
         "gcp_project": project_id,
-        "table_name": os.environ.get("TABLE_NAME"),
-        "location": os.environ.get("TABLE_LOCATION"),
+        "table_name": getenv("TABLE_NAME"),
+        "location": getenv("TABLE_LOCATION"),
         "service": service,
     }
 
 
-def get_option_from_key(key: str, options) -> str:
-    if isinstance(key, str):
-        if key.isnumeric():
-            option = options[options["id"] == int(key)]["label"].values
+def main(data: dict = None, context: dict = None) -> None:  # noqa: ARG001, RUF013, C901
+    """Run Pipedrive Deals data pipeline.
+
+    Arguments are not used, but required by the Cloud Function framework.
+
+    Args:
+    ----
+        data (dict): Data dictionary
+        context (dict): Context dictionary
+
+    """
+
+    def update_keys(dictionary: dict, keys_to_update: list, new_keys: list) -> dict:
+        broken_keys = set()
+        for old_key, new_key in zip(keys_to_update, new_keys, strict=True):
+            try:
+                dictionary[new_key] = dictionary.pop(old_key)
+            except:  # noqa: E722
+                broken_keys.add((old_key, new_key))
+        print("Unable to change following keys:", broken_keys)
+        return dictionary
+
+    def get_column_name(item_name: str) -> str:
+        return COLUMN_MAPPING.get(item_name, item_name.replace(" ", "_").lower())
+
+    def get_option_from_key(key: str, options: pd.DataFrame) -> str:
+        if isinstance(key, str) and key.isnumeric():
+            option = options[options["id"] == int(key)]["label"].to_numpy()
             if len(option) > 0:
                 return option[0]
             if len(key) > 0:
                 return f"{key} Not Found ?!?"
-    return key
+        return key
 
-
-def main(data: dict, context):
     service = "Data Pipeline - Pipedrive Deals"
     config = load_config(project_id, service)
 
     client = Client(domain="https://companydomain.pipedrive.com/")
-
     client.set_api_token(config["auth_token"])
-    print("Pipedrive client created")
+
     done = False
     deals = []
-    start = 0  # 0 is the first deal
+    start = 0
     while not done:
         print(f"Getting deals from start: {start}")
         deals_resp = client.deals.get_all_deals(params={"start": start})
@@ -82,25 +108,13 @@ def main(data: dict, context):
                 "options": column.get("options"),
             }
             for column in deal_fields_resp
-        ]
+        ],
     )
 
-    unnamed_columns = column_names[column_names["key"].str.len() > 30]
-    optioned_columns = column_names[column_names["options"].notnull()]
-    updated_deals = [
-        update_keys(
-            deal, unnamed_columns["key"].to_list(), unnamed_columns["name"].to_list()
-        )
-        for deal in deals
-    ]
-    deals_df = pd.DataFrame(updated_deals).rename(
-        columns=lambda x: str(x)
-        .replace(
-            " ",
-            "_",
-        )
-        .lower()
-    )
+    unnamed_columns = column_names[column_names["key"].str.len() > UNNAMED_KEY_MIN_LENGTH]
+    optioned_columns = column_names[column_names["options"].notna()]
+    updated_deals = [update_keys(deal, unnamed_columns["key"].to_list(), unnamed_columns["name"].to_list()) for deal in deals]
+    deals_df = pd.DataFrame(updated_deals).rename(columns=lambda x: str(x).replace(" ", "_").lower())
     nested_columns = [
         "creator_user_id",
         "user_id",
@@ -112,22 +126,23 @@ def main(data: dict, context):
     ]
 
     flat_deals = flatten_columns(deals_df, nested_columns)
-    flat_deals = flat_deals
     print("Deals flattened")
 
     for _, item in optioned_columns.iterrows():
-        flat_deals[item["name"].replace(" ", "_").lower()] = flat_deals[
-            item["name"].replace(" ", "_").lower()
-        ].apply(lambda x: get_option_from_key(x, pd.DataFrame(item["options"])))
+        column_name = get_column_name(item["name"])
+
+        if column_name in flat_deals.columns:
+            flat_deals[column_name] = flat_deals[column_name].apply(lambda x: get_option_from_key(x, pd.DataFrame(item["options"])))  # noqa: B023
+        else:
+            print(f"Warning: Column {column_name} does not exist in flat_deals")
 
     flat_deals = flat_deals.drop(
         columns=[
             "bid_clarifications_due_by_time",
             "timezone_of_bid_clarifications_due_by_time",
             "timezone_of_bid/proposal_deadline_time",
-        ]
+        ],
     )
-    print("Deal options updated")
 
     columns_to_drop = unnamed_columns["key"].to_list()
     flat_deals = flat_deals.drop(columns=columns_to_drop, errors="ignore")

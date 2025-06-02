@@ -1,0 +1,12 @@
+[project]
+name = "harvest-timesheets"
+version = "1.0.0"
+description = "Harvest Timesheets data pipeline."
+authors = ["Andy Urquhart <andy.urquhart@tpximpact.com>", "Balazs Roman <balazs.roman@tpximpact.com>"]
+requires-python = ">=3.11"
+dependencies = [
+    "data-pipeline-tools>=1.0.2",
+]
+
+[tool.uv.sources]
+data-pipeline-tools = { git = "https://github.com/tpximpact/data-pipeline-tools" }

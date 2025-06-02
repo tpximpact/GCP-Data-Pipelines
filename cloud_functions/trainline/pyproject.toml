@@ -1,0 +1,19 @@
+[project]
+name = "trainline"
+version = "0.1.0"
+description = "Trainline expenses to Harvest"
+authors = ["Balazs Roman <balazs.roman@tpximpact.com>"]
+dependencies = [
+    "data-pipeline-tools>=1.0",
+    "httpx>=0.27.2",
+    "thefuzz>=0.22.1",
+]
+
+[tool.uv.sources]
+data-pipeline-tools = { git = "https://github.com/tpximpact/data-pipeline-tools" }
+
+[dependency-groups]
+dev = [
+    "ruff>=0.7.2",
+    "tqdm>=4.67.1",
+]

@@ -1,0 +1,11 @@
+[project]
+name = "hibob-holiday-balances"
+version = "1.0.0"
+description = "Hibob Holiday Balances data pipeline."
+authors = ["Andy Urquhart <andy.urquhart@tpximpact.com>", "Balazs Roman <balazs.roman@tpximpact.com>"]
+dependencies = [
+    "data-pipeline-tools>=1.0",
+]
+
+[tool.uv.sources]
+data-pipeline-tools = { git = "https://github.com/tpximpact/data-pipeline-tools" }
