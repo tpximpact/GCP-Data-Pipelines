@@ -107,15 +107,15 @@ resource "google_bigquery_dataset" "variable_data_input" {
   }
 }
 
-resource "google_bigquery_dataset" "trainline" {
-  dataset_id  = "Trainline"
-  description = "Dataset for trainline data"
-  location    = var.region
+# resource "google_bigquery_dataset" "trainline" {
+#   dataset_id  = "Trainline"
+#   description = "Dataset for trainline data"
+#   location    = var.region
 
-  labels = {
-    env = var.env
-  }
-  default_encryption_configuration {
-    kms_key_name = google_kms_crypto_key.bigquery_key.id
-  }
-}
+#   labels = {
+#     env = var.env
+#   }
+#   default_encryption_configuration {
+#     kms_key_name = google_kms_crypto_key.bigquery_key.id
+#   }
+# }
