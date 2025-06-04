@@ -3,7 +3,7 @@
 data "archive_file" "pipedrive_deals" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/pipedrive/deals"
-  output_path = "/tmp/pipedrive_deals.zip"
+  output_path = "${path.root}/build/pipedrive_deals.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -20,7 +20,7 @@ resource "google_storage_bucket_object" "pipedrive_deals" {
 resource "google_cloudfunctions_function" "pipedrive_deals" {
   name                = "pipedrive_deals_pipe"
   runtime             = var.function_runtime
-  available_memory_mb = 1024
+  available_memory_mb = 512
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
   source_archive_bucket = data.google_storage_bucket.function_bucket.name
@@ -38,7 +38,6 @@ resource "google_cloudfunctions_function" "pipedrive_deals" {
     "TABLE_NAME"           = google_bigquery_table.deals.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.pipedrive_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
-
   }
 }
 
@@ -47,7 +46,7 @@ resource "google_cloudfunctions_function" "pipedrive_deals" {
 data "archive_file" "pipedrive_organisations" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/pipedrive/organisations"
-  output_path = "/tmp/pipedrive_organisations.zip"
+  output_path = "${path.root}/build/pipedrive_organisations.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -64,7 +63,7 @@ resource "google_storage_bucket_object" "pipedrive_organisations" {
 resource "google_cloudfunctions_function" "pipedrive_organisations" {
   name                = "pipedrive_organisations_pipe"
   runtime             = var.function_runtime
-  available_memory_mb = 1024
+  available_memory_mb = 512
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
   source_archive_bucket = data.google_storage_bucket.function_bucket.name
@@ -82,6 +81,5 @@ resource "google_cloudfunctions_function" "pipedrive_organisations" {
     "TABLE_NAME"           = google_bigquery_table.organisations.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.pipedrive_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
-
   }
 }

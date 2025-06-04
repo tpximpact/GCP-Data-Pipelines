@@ -3,7 +3,7 @@
 data "archive_file" "forecast_assignments" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/assignments"
-  output_path = "/tmp/forecast_assignments.zip"
+  output_path = "${path.root}/build/forecast_assignments.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -20,7 +20,7 @@ resource "google_storage_bucket_object" "forecast_assignments" {
 resource "google_cloudfunctions_function" "forecast_assignments" {
   name                = "forecast_assignments_pipe"
   runtime             = var.function_runtime
-  available_memory_mb = 512
+  available_memory_mb = 2048
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
   source_archive_bucket = data.google_storage_bucket.function_bucket.name
@@ -38,7 +38,6 @@ resource "google_cloudfunctions_function" "forecast_assignments" {
     "TABLE_NAME"           = google_bigquery_table.forecast_assignments.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.forecast_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
-
   }
 }
 
@@ -48,7 +47,7 @@ resource "google_cloudfunctions_function" "forecast_assignments" {
 data "archive_file" "forecast_assignments_filled" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/assignments_filled"
-  output_path = "/tmp/forecast_assignments_filled.zip"
+  output_path = "${path.root}/build/forecast_assignments_filled.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -83,7 +82,50 @@ resource "google_cloudfunctions_function" "forecast_assignments_filled" {
     "TABLE_NAME"           = google_bigquery_table.forecast_assignments_filled.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.forecast_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
+  }
+}
 
+
+# --------------------------clients--------------------------------\
+# Generates an archive of the source code compressed as a .zip file.
+data "archive_file" "forecast_clients" {
+  type        = "zip"
+  source_dir  = "../../../cloud_functions/forecast/clients"
+  output_path = "${path.root}/build/forecast_clients.zip"
+}
+
+# Add source code zip to the Cloud Function's bucket
+resource "google_storage_bucket_object" "forecast_clients" {
+  source       = data.archive_file.forecast_clients.output_path
+  content_type = "application/zip"
+
+  # Append to the MD5 checksum of the files's content
+  # to force the zip to be updated as soon as a change occurs
+  name   = "cloud_function-${data.archive_file.forecast_clients.output_md5}.zip"
+  bucket = data.google_storage_bucket.function_bucket.name
+}
+
+resource "google_cloudfunctions_function" "forecast_clients" {
+  name                = "forecast_clients_pipe"
+  runtime             = var.function_runtime
+  available_memory_mb = 512
+  timeout             = 540
+  # Get the source code of the cloud function as a Zip compression
+  source_archive_bucket = data.google_storage_bucket.function_bucket.name
+  source_archive_object = google_storage_bucket_object.forecast_clients.name
+
+  # Must match the function name in the cloud function `main.py` source code
+  entry_point = "main"
+  event_trigger {
+    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+    resource   = google_pubsub_topic.cloud_function_trigger_cold.id
+  }
+
+  environment_variables = {
+    "DATASET_ID"           = google_bigquery_dataset.forecast_raw.dataset_id
+    "TABLE_NAME"           = google_bigquery_table.forecast_clients.table_id
+    "TABLE_LOCATION"       = google_bigquery_dataset.forecast_raw.location
+    "GOOGLE_CLOUD_PROJECT" = var.project
   }
 }
 
@@ -92,7 +134,7 @@ resource "google_cloudfunctions_function" "forecast_assignments_filled" {
 data "archive_file" "forecast_people" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/people"
-  output_path = "/tmp/forecast_people.zip"
+  output_path = "${path.root}/build/forecast_people.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -127,7 +169,6 @@ resource "google_cloudfunctions_function" "forecast_people" {
     "TABLE_NAME"           = google_bigquery_table.forecast_people.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.forecast_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
-
   }
 }
 
@@ -136,7 +177,7 @@ resource "google_cloudfunctions_function" "forecast_people" {
 data "archive_file" "forecast_projects" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/projects"
-  output_path = "/tmp/forecast_projects.zip"
+  output_path = "${path.root}/build/forecast_projects.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -171,7 +212,6 @@ resource "google_cloudfunctions_function" "forecast_projects" {
     "TABLE_NAME"           = google_bigquery_table.forecast_projects.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.forecast_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
-
   }
 }
 
@@ -181,7 +221,7 @@ resource "google_cloudfunctions_function" "forecast_projects" {
 data "archive_file" "forecast_placeholders" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/placeholders"
-  output_path = "/tmp/forecast_placeholders.zip"
+  output_path = "${path.root}/build/forecast_placeholders.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -198,7 +238,7 @@ resource "google_storage_bucket_object" "forecast_placeholders" {
 resource "google_cloudfunctions_function" "forecast_placeholders" {
   name                = "forecast_placeholders_pipe"
   runtime             = var.function_runtime
-  available_memory_mb = 512
+  available_memory_mb = 256
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
   source_archive_bucket = data.google_storage_bucket.function_bucket.name
@@ -216,6 +256,5 @@ resource "google_cloudfunctions_function" "forecast_placeholders" {
     "TABLE_NAME"           = google_bigquery_table.forecast_placeholders.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.forecast_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
-
   }
 }
