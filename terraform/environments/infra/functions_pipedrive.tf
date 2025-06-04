@@ -3,7 +3,7 @@
 data "archive_file" "pipedrive_deals" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/pipedrive/deals"
-  output_path = "/tmp/pipedrive_deals.zip"
+  output_path = "${path.root}/build/pipedrive_deals.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -46,7 +46,7 @@ resource "google_cloudfunctions_function" "pipedrive_deals" {
 data "archive_file" "pipedrive_organisations" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/pipedrive/organisations"
-  output_path = "/tmp/pipedrive_organisations.zip"
+  output_path = "${path.root}/build/pipedrive_organisations.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket

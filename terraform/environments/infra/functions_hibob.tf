@@ -3,7 +3,7 @@
 data "archive_file" "hibob_time_off" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/hibob/time_off"
-  output_path = "/tmp/hibob_time_off.zip"
+  output_path = "${path.root}/build/hibob_time_off.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -46,7 +46,7 @@ resource "google_cloudfunctions_function" "hibob_time_off" {
 data "archive_file" "hibob_employees" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/hibob/employees"
-  output_path = "/tmp/hibob_employees.zip"
+  output_path = "${path.root}/build/hibob_employees.zip"
 }
 
 resource "google_storage_bucket_object" "hibob_employees" {
@@ -82,7 +82,7 @@ resource "google_cloudfunctions_function" "hibob_employees" {
 data "archive_file" "hibob_time_off_policies" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/hibob/time_off_policies"
-  output_path = "/tmp/hibob_time_off_policies.zip"
+  output_path = "${path.root}/build/hibob_time_off_policies.zip"
 }
 
 resource "google_storage_bucket_object" "hibob_time_off_policies" {
@@ -118,7 +118,7 @@ resource "google_cloudfunctions_function" "hibob_time_off_policies" {
 data "archive_file" "hibob_holiday_balances" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/hibob/holiday_balances"
-  output_path = "/tmp/hibob_holiday_balances.zip"
+  output_path = "${path.root}/build/hibob_holiday_balances.zip"
 }
 
 resource "google_storage_bucket_object" "hibob_holiday_balances" {

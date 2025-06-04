@@ -4,7 +4,7 @@
 data "archive_file" "harvest_timesheet" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/harvest/timesheets"
-  output_path = "/tmp/harvest_timesheet.zip"
+  output_path = "${path.root}/build/harvest_timesheet.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -48,7 +48,7 @@ resource "google_cloudfunctions_function" "harvest_timesheet" {
 data "archive_file" "harvest_users" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/harvest/users"
-  output_path = "/tmp/harvest_users.zip"
+  output_path = "${path.root}/build/harvest_users.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -91,7 +91,7 @@ resource "google_cloudfunctions_function" "harvest_users" {
 data "archive_file" "harvest_user_project_assignments" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/harvest/user_project_assignments"
-  output_path = "/tmp/harvest_user_project_assignments.zip"
+  output_path = "${path.root}/build/harvest_user_project_assignments.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -135,7 +135,7 @@ resource "google_cloudfunctions_function" "harvest_user_project_assignments" {
 data "archive_file" "harvest_projects" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/harvest/projects"
-  output_path = "/tmp/harvest_projects.zip"
+  output_path = "${path.root}/build/harvest_projects.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -178,7 +178,7 @@ resource "google_cloudfunctions_function" "harvest_projects" {
 data "archive_file" "harvest_clients" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/harvest/clients"
-  output_path = "/tmp/harvest_clients.zip"
+  output_path = "${path.root}/build/harvest_clients.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -221,7 +221,7 @@ resource "google_cloudfunctions_function" "harvest_clients" {
 data "archive_file" "harvest_expenses" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/harvest/expenses"
-  output_path = "/tmp/harvest_expenses.zip"
+  output_path = "${path.root}/build/harvest_expenses.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket

@@ -3,7 +3,7 @@
 data "archive_file" "forecast_assignments" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/assignments"
-  output_path = "/tmp/forecast_assignments.zip"
+  output_path = "${path.root}/build/forecast_assignments.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -47,7 +47,7 @@ resource "google_cloudfunctions_function" "forecast_assignments" {
 data "archive_file" "forecast_assignments_filled" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/assignments_filled"
-  output_path = "/tmp/forecast_assignments_filled.zip"
+  output_path = "${path.root}/build/forecast_assignments_filled.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -91,7 +91,7 @@ resource "google_cloudfunctions_function" "forecast_assignments_filled" {
 data "archive_file" "forecast_clients" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/clients"
-  output_path = "/tmp/forecast_clients.zip"
+  output_path = "${path.root}/build/forecast_clients.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -134,7 +134,7 @@ resource "google_cloudfunctions_function" "forecast_clients" {
 data "archive_file" "forecast_people" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/people"
-  output_path = "/tmp/forecast_people.zip"
+  output_path = "${path.root}/build/forecast_people.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -177,7 +177,7 @@ resource "google_cloudfunctions_function" "forecast_people" {
 data "archive_file" "forecast_projects" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/projects"
-  output_path = "/tmp/forecast_projects.zip"
+  output_path = "${path.root}/build/forecast_projects.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -221,7 +221,7 @@ resource "google_cloudfunctions_function" "forecast_projects" {
 data "archive_file" "forecast_placeholders" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/placeholders"
-  output_path = "/tmp/forecast_placeholders.zip"
+  output_path = "${path.root}/build/forecast_placeholders.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
