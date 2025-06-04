@@ -3,7 +3,7 @@
 # Generates an archive of the source code compressed as a .zip file.
 data "archive_file" "harvest_timesheet" {
   type        = "zip"
-  source_dir  = "../../../cloud_functions/harvest/timesheet"
+  source_dir  = "../../../cloud_functions/harvest/timesheets"
   output_path = "/tmp/harvest_timesheet.zip"
 }
 
@@ -39,7 +39,6 @@ resource "google_cloudfunctions_function" "harvest_timesheet" {
     "TABLE_NAME"           = google_bigquery_table.harvest_timesheets.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.harvest_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
-
   }
 }
 
@@ -66,7 +65,7 @@ resource "google_storage_bucket_object" "harvest_users" {
 resource "google_cloudfunctions_function" "harvest_users" {
   name                = "harvest_users_pipe"
   runtime             = var.function_runtime
-  available_memory_mb = 1024
+  available_memory_mb = 512
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
   source_archive_bucket = data.google_storage_bucket.function_bucket.name
@@ -84,7 +83,6 @@ resource "google_cloudfunctions_function" "harvest_users" {
     "TABLE_NAME"           = google_bigquery_table.harvest_users.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.harvest_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
-
   }
 }
 
@@ -110,7 +108,7 @@ resource "google_storage_bucket_object" "harvest_user_project_assignments" {
 resource "google_cloudfunctions_function" "harvest_user_project_assignments" {
   name                = "harvest_user_project_assignments_pipe"
   runtime             = var.function_runtime
-  available_memory_mb = 1024
+  available_memory_mb = 512
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
   source_archive_bucket = data.google_storage_bucket.function_bucket.name
@@ -120,7 +118,7 @@ resource "google_cloudfunctions_function" "harvest_user_project_assignments" {
   entry_point = "main"
   event_trigger {
     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    resource   = google_pubsub_topic.cloud_function_trigger_cold.id
+    resource   = google_pubsub_topic.cloud_function_trigger_hot.id
   }
 
   environment_variables = {
@@ -128,7 +126,6 @@ resource "google_cloudfunctions_function" "harvest_user_project_assignments" {
     "TABLE_NAME"           = google_bigquery_table.harvest_user_project_assignments.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.harvest_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
-
   }
 }
 
@@ -155,7 +152,7 @@ resource "google_storage_bucket_object" "harvest_projects" {
 resource "google_cloudfunctions_function" "harvest_projects" {
   name                = "harvest_projects_pipe"
   runtime             = var.function_runtime
-  available_memory_mb = 1024
+  available_memory_mb = 512
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
   source_archive_bucket = data.google_storage_bucket.function_bucket.name
@@ -173,7 +170,6 @@ resource "google_cloudfunctions_function" "harvest_projects" {
     "TABLE_NAME"           = google_bigquery_table.harvest_projects.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.harvest_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
-
   }
 }
 
@@ -199,7 +195,7 @@ resource "google_storage_bucket_object" "harvest_clients" {
 resource "google_cloudfunctions_function" "harvest_clients" {
   name                = "harvest_clients_pipe"
   runtime             = var.function_runtime
-  available_memory_mb = 1024
+  available_memory_mb = 512
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
   source_archive_bucket = data.google_storage_bucket.function_bucket.name
@@ -217,7 +213,6 @@ resource "google_cloudfunctions_function" "harvest_clients" {
     "TABLE_NAME"           = google_bigquery_table.harvest_clients.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.harvest_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
-
   }
 }
 
@@ -243,7 +238,7 @@ resource "google_storage_bucket_object" "harvest_expenses" {
 resource "google_cloudfunctions_function" "harvest_expenses" {
   name                = "harvest_expenses_pipe"
   runtime             = var.function_runtime
-  available_memory_mb = 1024
+  available_memory_mb = 512
   timeout             = 540
   # Get the source code of the cloud function as a Zip compression
   source_archive_bucket = data.google_storage_bucket.function_bucket.name
@@ -261,7 +256,6 @@ resource "google_cloudfunctions_function" "harvest_expenses" {
     "TABLE_NAME"           = google_bigquery_table.harvest_expenses.table_id
     "TABLE_LOCATION"       = google_bigquery_dataset.harvest_raw.location
     "GOOGLE_CLOUD_PROJECT" = var.project
-
   }
 }
 
