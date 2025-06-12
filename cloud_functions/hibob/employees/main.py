@@ -98,9 +98,9 @@ def get_employees(config: dict[str, str]) -> list[dict[str, str]]:
             "secondLevelManagerId": employee["work"]["secondLevelManager"],
             "contract": employee["humanReadable"]["work"]["siteId"],
             "startDate": employee["work"]["startDate"],
-            "title": employee["work"]["title"],
-            "employeeIdInCompany": employee["work"]["employeeIdInCompany"],
-            "reportsToIdInCompany": employee["work"]["reportsToIdInCompany"],
+            "title": employee["humanReadable"]["work"]["title"],
+            "employeeIdInCompany": str(employee["work"]["employeeIdInCompany"]),
+            "reportsToIdInCompany": str(employee["work"]["reportsToIdInCompany"]),
         }
         try:
             employee_data["department"] = employee["humanReadable"]["work"]["customColumns"]["column_1712065124837"]
