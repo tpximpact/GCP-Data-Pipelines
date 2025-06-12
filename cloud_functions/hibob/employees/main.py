@@ -71,6 +71,10 @@ def get_employees(config: dict[str, str]) -> list[dict[str, str]]:
         "work.startDate",
         "work.customColumns.column_1712065124837",  # department
         "work.customColumns.column_1712065102576",  # team
+        "work.customColumns.column_1687442781137", # job level
+        "work.title",
+        "work.employeeIdInCompany",
+        "work.reportsToIdInCompany",
     ]
 
     response = requests.post(
@@ -83,6 +87,7 @@ def get_employees(config: dict[str, str]) -> list[dict[str, str]]:
         },
         timeout=10,
     )
+    breakpoint()
     return [
         {
             "email": employee["email"],
@@ -94,6 +99,10 @@ def get_employees(config: dict[str, str]) -> list[dict[str, str]]:
             "startDate": employee["work"]["startDate"],
             "department": employee["humanReadable"]["work"]["customColumns"]["column_1712065124837"],
             "team": employee["humanReadable"]["work"]["customColumns"]["column_1712065102576"],
+            "jobLevel": employee["humanReadable"]["work"]["customColumns"]["column_1687442781137"],
+            "title": employee["work"]["title"],
+            "employeeIdInCompany": employee["work"]["employeeIdInCompany"],
+            "reportsToIdInCompany": employee["work"]["reportsToIdInCompany"],
         }
         if employee["humanReadable"]["work"].get("customColumns")
         else {
@@ -106,6 +115,10 @@ def get_employees(config: dict[str, str]) -> list[dict[str, str]]:
             "startDate": employee["work"]["startDate"],
             "department": "",
             "team": "",
+            "jobLevel": "",
+            "title": employee["work"]["title"],
+            "employeeIdInCompany": employee["work"]["employeeIdInCompany"],
+            "reportsToIdInCompany": employee["work"]["reportsToIdInCompany"],
         }
         for employee in response.json()["employees"]
     ]
