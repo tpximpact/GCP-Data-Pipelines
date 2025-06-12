@@ -87,7 +87,6 @@ def get_employees(config: dict[str, str]) -> list[dict[str, str]]:
         },
         timeout=10,
     )
-    breakpoint()
     return [
         {
             "email": employee["email"],
