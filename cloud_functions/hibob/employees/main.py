@@ -71,7 +71,7 @@ def get_employees(config: dict[str, str]) -> list[dict[str, str]]:
         "work.startDate",
         "work.customColumns.column_1712065124837",  # department
         "work.customColumns.column_1712065102576",  # team
-        "work.customColumns.column_1687442781137", # job level
+        "work.customColumns.column_1687442781137",  # job level
         "work.title",
         "work.employeeIdInCompany",
         "work.reportsToIdInCompany",
@@ -87,8 +87,10 @@ def get_employees(config: dict[str, str]) -> list[dict[str, str]]:
         },
         timeout=10,
     )
-    return [
-        {
+
+    employees = []
+    for employee in response.json()["employees"]:
+        employee_data = {
             "email": employee["email"],
             "id": employee["id"],
             "displayName": employee["displayName"],
@@ -96,31 +98,25 @@ def get_employees(config: dict[str, str]) -> list[dict[str, str]]:
             "secondLevelManagerId": employee["work"]["secondLevelManager"],
             "contract": employee["humanReadable"]["work"]["siteId"],
             "startDate": employee["work"]["startDate"],
-            "department": employee["humanReadable"]["work"]["customColumns"]["column_1712065124837"],
-            "team": employee["humanReadable"]["work"]["customColumns"]["column_1712065102576"],
-            "jobLevel": employee["humanReadable"]["work"]["customColumns"]["column_1687442781137"],
             "title": employee["work"]["title"],
             "employeeIdInCompany": employee["work"]["employeeIdInCompany"],
             "reportsToIdInCompany": employee["work"]["reportsToIdInCompany"],
         }
-        if employee["humanReadable"]["work"].get("customColumns")
-        else {
-            "email": employee["email"],
-            "id": employee["id"],
-            "displayName": employee["displayName"],
-            "managerId": employee["work"]["manager"],
-            "secondLevelManagerId": employee["work"]["secondLevelManager"],
-            "contract": employee["humanReadable"]["work"]["siteId"],
-            "startDate": employee["work"]["startDate"],
-            "department": "",
-            "team": "",
-            "jobLevel": "",
-            "title": employee["work"]["title"],
-            "employeeIdInCompany": employee["work"]["employeeIdInCompany"],
-            "reportsToIdInCompany": employee["work"]["reportsToIdInCompany"],
-        }
-        for employee in response.json()["employees"]
-    ]
+        try:
+            employee_data["department"] = employee["humanReadable"]["work"]["customColumns"]["column_1712065124837"]
+        except KeyError:
+            employee_data["department"] = ""
+        try:
+            employee_data["team"] = employee["humanReadable"]["work"]["customColumns"]["column_1712065102576"]
+        except KeyError:
+            employee_data["team"] = ""
+        try:
+            employee_data["jobLevel"] = employee["humanReadable"]["work"]["customColumns"]["column_1687442781137"]
+        except KeyError:
+            employee_data["jobLevel"] = ""
+        employees.append(employee_data)
+
+    return employees
 
 
 if __name__ == "__main__":
