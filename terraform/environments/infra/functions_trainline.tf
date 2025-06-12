@@ -4,6 +4,7 @@
 #   type        = "zip"
 #   source_dir  = "../../../cloud_functions/trainline"
 #   output_path = "${path.root}/build/trainline.zip"
+#   excludes    = [".venv"]
 # }
 
 # # Add source code zip to the Cloud Function's bucket

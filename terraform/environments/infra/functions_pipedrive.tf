@@ -4,6 +4,7 @@ data "archive_file" "pipedrive_deals" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/pipedrive/deals"
   output_path = "${path.root}/build/pipedrive_deals.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -47,6 +48,7 @@ data "archive_file" "pipedrive_organisations" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/pipedrive/organisations"
   output_path = "${path.root}/build/pipedrive_organisations.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket

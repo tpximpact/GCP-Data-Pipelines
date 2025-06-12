@@ -5,6 +5,7 @@ data "archive_file" "harvest_timesheet" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/harvest/timesheets"
   output_path = "${path.root}/build/harvest_timesheet.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -49,6 +50,7 @@ data "archive_file" "harvest_users" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/harvest/users"
   output_path = "${path.root}/build/harvest_users.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -92,6 +94,7 @@ data "archive_file" "harvest_user_project_assignments" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/harvest/user_project_assignments"
   output_path = "${path.root}/build/harvest_user_project_assignments.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -136,6 +139,7 @@ data "archive_file" "harvest_projects" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/harvest/projects"
   output_path = "${path.root}/build/harvest_projects.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -179,6 +183,7 @@ data "archive_file" "harvest_clients" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/harvest/clients"
   output_path = "${path.root}/build/harvest_clients.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -222,6 +227,7 @@ data "archive_file" "harvest_expenses" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/harvest/expenses"
   output_path = "${path.root}/build/harvest_expenses.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket

@@ -4,6 +4,7 @@ data "archive_file" "forecast_assignments" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/assignments"
   output_path = "${path.root}/build/forecast_assignments.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -48,6 +49,7 @@ data "archive_file" "forecast_assignments_filled" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/assignments_filled"
   output_path = "${path.root}/build/forecast_assignments_filled.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -92,6 +94,7 @@ data "archive_file" "forecast_clients" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/clients"
   output_path = "${path.root}/build/forecast_clients.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -135,6 +138,7 @@ data "archive_file" "forecast_people" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/people"
   output_path = "${path.root}/build/forecast_people.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -178,6 +182,7 @@ data "archive_file" "forecast_projects" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/projects"
   output_path = "${path.root}/build/forecast_projects.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -222,6 +227,7 @@ data "archive_file" "forecast_placeholders" {
   type        = "zip"
   source_dir  = "../../../cloud_functions/forecast/placeholders"
   output_path = "${path.root}/build/forecast_placeholders.zip"
+  excludes    = [".venv"]
 }
 
 # Add source code zip to the Cloud Function's bucket
