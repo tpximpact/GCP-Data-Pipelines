@@ -55,6 +55,10 @@ def main(data: dict = None, context: dict = None) -> None:  # noqa: ARG001, RUF0
     pages, _ = get_harvest_pages(config["url"], config["headers"])
     expenses_df = asyncio.run(get_all_data(config["url"], config["headers"], pages, "expenses", batch_size=10)).reset_index(drop=True)
 
+    expenses_df["receipt"] = expenses_df["receipt"].apply(
+        lambda x: x.get("url") if isinstance(x, dict) else x,
+    )
+
     write_to_bigquery(config, find_and_flatten_columns(expenses_df), "WRITE_TRUNCATE")
 
 
