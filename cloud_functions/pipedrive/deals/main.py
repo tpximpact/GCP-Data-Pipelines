@@ -121,12 +121,20 @@ def main(data: dict = None, context: dict = None) -> None:  # noqa: ARG001, RUF0
         "org_id",
         "person_id",
         "bid_manager",
-        "person_id_email",
-        "person_id_phone",
+        
     ]
 
     flat_deals = flatten_columns(deals_df, nested_columns)
     print("Deals flattened")
+    
+    if "person_id_email" not in flat_deals.columns and "person_id" in deals_df.columns:
+        flat_deals["person_id_email"] = deals_df["person_id"].apply(
+            lambda v: (v.get("email")[0]["value"] if isinstance(v, dict) and v.get("email") else None)
+        )
+    if "person_id_phone" not in flat_deals.columns and "person_id" in deals_df.columns:
+        flat_deals["person_id_phone"] = deals_df["person_id"].apply(
+            lambda v: (v.get("phone")[0]["value"] if isinstance(v, dict) and v.get("phone") else None)
+        )
 
     for _, item in optioned_columns.iterrows():
         column_name = get_column_name(item["name"])
