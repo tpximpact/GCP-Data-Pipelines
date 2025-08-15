@@ -1,5 +1,6 @@
 """Pipedrive Deals data pipeline."""
 
+import json
 from os import getenv
 
 import pandas as pd
@@ -65,13 +66,16 @@ def main(data: dict = None, context: dict = None) -> None:  # noqa: ARG001, RUF0
         return COLUMN_MAPPING.get(item_name, item_name.replace(" ", "_").lower())
 
     def get_option_from_key(key: str, options: pd.DataFrame) -> str:
-        if isinstance(key, str) and key.isnumeric():
-            option = options[options["id"] == int(key)]["label"].to_numpy()
-            if len(option) > 0:
-                return option[0]
-            if len(key) > 0:
-                return f"{key} Not Found ?!?"
-        return key
+        if key is None:
+            return None
+        try:
+            key_int = int(str(key))
+        except (ValueError, TypeError):
+            return key
+        option = options[options["id"] == key_int]["label"].to_numpy()
+        if len(option) > 0:
+            return option[0]
+        return str(key_int)
 
     service = "Data Pipeline - Pipedrive Deals"
     config = load_config(project_id, service)
@@ -130,26 +134,42 @@ def main(data: dict = None, context: dict = None) -> None:  # noqa: ARG001, RUF0
     if "person_id_email" not in flat_deals.columns and "person_id" in deals_df.columns:
         flat_deals["person_id_email"] = deals_df["person_id"].apply(
             lambda v: (v.get("email")[0]["value"] if isinstance(v, dict) and v.get("email") else None)
+            
         )
     if "person_id_phone" not in flat_deals.columns and "person_id" in deals_df.columns:
         flat_deals["person_id_phone"] = deals_df["person_id"].apply(
             lambda v: (v.get("phone")[0]["value"] if isinstance(v, dict) and v.get("phone") else None)
         )
+        extracted_emails = flat_deals["person_id_email"].dropna().head(3).tolist()
 
     for _, item in optioned_columns.iterrows():
-        column_name = get_column_name(item["name"])
+        name_col = get_column_name(item["name"])
+        key_col = item["key"]
+        options_df = pd.DataFrame(item["options"])
 
-        if column_name in flat_deals.columns:
-            flat_deals[column_name] = flat_deals[column_name].apply(lambda x: get_option_from_key(x, pd.DataFrame(item["options"])))  # noqa: B023
+        target_col = None
+        if name_col in flat_deals.columns:
+            target_col = name_col
+        elif key_col in flat_deals.columns:
+            target_col = key_col
         else:
-            print(f"Warning: Column {column_name} does not exist in flat_deals")
+            print(f"Warning: Option field missing. name='{item['name']}' key='{key_col}' looked for '{name_col}' or '{key_col}'")
+            continue
+
+        flat_deals[target_col] = flat_deals[target_col].apply(lambda x: get_option_from_key(x, options_df))
+
+        
+        if target_col == key_col and name_col not in flat_deals.columns:
+            flat_deals = flat_deals.rename(columns={key_col: name_col})
 
     flat_deals = flat_deals.drop(
         columns=[
             "bid_clarifications_due_by_time",
             "timezone_of_bid_clarifications_due_by_time",
             "timezone_of_bid/proposal_deadline_time",
+            "contracting_entity_(if_different_from_end_client)",  
         ],
+        errors="ignore",
     )
 
     columns_to_drop = unnamed_columns["key"].to_list()
