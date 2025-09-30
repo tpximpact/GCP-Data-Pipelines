@@ -9,8 +9,10 @@ import httpx
 import pandas as pd
 from data_pipeline_tools.auth import hibob_headers
 from data_pipeline_tools.util import write_to_bigquery
+from holidays import CountryHoliday
 
 project_id = getenv("GOOGLE_CLOUD_PROJECT") or "tpx-consulting-dashboards"
+uk_holidays = CountryHoliday("GB", years=range(datetime.now().year - 1, datetime.now().year + 2))
 
 
 def load_config(project_id: str, service: str) -> dict[str, str]:
@@ -69,7 +71,8 @@ def get_holidays(config: dict, client: httpx.Client) -> pd.DataFrame:
             end_date = datetime.strptime(row["endDate"], "%Y-%m-%d")
             start_date = datetime.strptime(row["startDate"], "%Y-%m-%d")
 
-            dates = get_weekdays(start_date, end_date)
+            # Updated to filter out bank holidays
+            dates = get_working_days(start_date, end_date)
 
             first_row = copy.copy(row)
             if len(dates) > 1:
@@ -142,8 +145,8 @@ def set_dates_in_row(row: pd.Series, date: datetime) -> pd.Series:
     return row
 
 
-def get_weekdays(start_date: datetime, end_date: datetime) -> list:
-    """Get list of weekdays between start and end dates.
+def get_working_days(start_date: datetime, end_date: datetime) -> list:
+    """Get list of working days (not including weekends or bank holidays) between start and end dates.
 
     Args:
     ----
@@ -152,13 +155,13 @@ def get_weekdays(start_date: datetime, end_date: datetime) -> list:
 
     Returns:
     -------
-        list: List of weekday dates
+        list: List of working dates
 
     """
     start = copy.copy(start_date)
     dates_list = []
     while start <= end_date:
-        if start.weekday() < 5:  # noqa: PLR2004
+        if start.weekday() < 5 and start not in uk_holidays:  # noqa: PLR2004
             dates_list.append(start)
         start = start + timedelta(days=1)
     return dates_list
