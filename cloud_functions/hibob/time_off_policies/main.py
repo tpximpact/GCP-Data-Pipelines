@@ -62,16 +62,46 @@ def main(data: dict = None, context: dict = None) -> None:  # noqa: ARG001, RUF0
     service = "Data Pipeline - HiBob Time Off Policies"
     config = load_config(project_id, service)
     policies = []
+    
     for policy_type in get_policy_types(config):
         policy_url = f"https://api.hibob.com/v1/timeoff/policies/names?policyTypeName={policy_type}"
         response = requests.get(policy_url, headers=config["headers"], timeout=10)
-        for policy_name in response.json()["policies"]:
+        
+        if response.status_code != 200:
+            print(f"Error fetching policy names for {policy_type}: Status {response.status_code}")
+            continue
+            
+        try:
+            policy_names_data = response.json()
+        except requests.exceptions.JSONDecodeError:
+            print(f"Invalid JSON response for policy names: {response.text}")
+            continue
+            
+        if "policies" not in policy_names_data:
+            print(f"No 'policies' key in response for {policy_type}: {policy_names_data}")
+            continue
+            
+        for policy_name in policy_names_data["policies"]:
             url = f"https://api.hibob.com/v1/timeoff/policies?policyName={policy_name}"
             response = requests.get(url, headers=config["headers"], timeout=10)
-            if not response.json().get("error"):
-                policies.append(response.json())
+            
+            if response.status_code != 200:
+                print(f"Error fetching policy {policy_name}: Status {response.status_code}")
+                continue
+                
+            try:
+                policy_data = response.json()
+            except requests.exceptions.JSONDecodeError:
+                print(f"Invalid JSON response for policy {policy_name}: {response.text}")
+                continue
+                
+            if not policy_data.get("error"):
+                policies.append(policy_data)
 
-    write_to_bigquery(config, pd.DataFrame(policies)[["name", "allowance"]], "WRITE_TRUNCATE")
+    if policies:
+        write_to_bigquery(config, pd.DataFrame(policies)[["name", "allowance"]], "WRITE_TRUNCATE")
+    else:
+        print("No policies found to write to BigQuery")
 
 
 if __name__ == "__main__":
