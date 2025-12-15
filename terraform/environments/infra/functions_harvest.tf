@@ -265,3 +265,48 @@ resource "google_cloudfunctions_function" "harvest_expenses" {
   }
 }
 
+
+
+# --------------------------user_cost_rates--------------------------------\
+# Generates an archive of the source code compressed as a .zip file.
+data "archive_file" "harvest_user_cost_rates" {
+  type        = "zip"
+  source_dir  = "../../../cloud_functions/harvest/user_cost_rates"
+  output_path = "${path.root}/build/harvest_user_cost_rates.zip"
+  excludes    = [".venv"]
+}
+
+# Add source code zip to the Cloud Function's bucket
+resource "google_storage_bucket_object" "harvest_user_cost_rates" {
+  source       = data.archive_file.harvest_user_cost_rates.output_path
+  content_type = "application/zip"
+
+  # Append to the MD5 checksum of the files's content
+  # to force the zip to be updated as soon as a change occurs
+  name   = "cloud_function-${data.archive_file.harvest_user_cost_rates.output_md5}.zip"
+  bucket = data.google_storage_bucket.function_bucket.name
+}
+
+resource "google_cloudfunctions_function" "harvest_user_cost_rates" {
+  name                = "harvest_user_cost_rates_pipe"
+  runtime             = var.function_runtime
+  available_memory_mb = 512
+  timeout             = 540
+  # Get the source code of the cloud function as a Zip compression
+  source_archive_bucket = data.google_storage_bucket.function_bucket.name
+  source_archive_object = google_storage_bucket_object.harvest_user_cost_rates.name
+
+  # Must match the function name in the cloud function `main.py` source code
+  entry_point = "main"
+  event_trigger {
+    event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+    resource   = google_pubsub_topic.cloud_function_trigger_cold.id
+  }
+
+  environment_variables = {
+    "DATASET_ID"           = google_bigquery_dataset.harvest_raw.dataset_id
+    "TABLE_NAME"           = google_bigquery_table.harvest_user_cost_rates.table_id
+    "TABLE_LOCATION"       = google_bigquery_dataset.harvest_raw.location
+    "GOOGLE_CLOUD_PROJECT" = var.project
+  }
+}

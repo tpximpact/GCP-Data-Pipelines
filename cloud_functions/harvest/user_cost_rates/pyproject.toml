@@ -1,0 +1,12 @@
+[project]
+name = "harvest-user-cost-rates"
+version = "1.0.0"
+description = "Harvest User Cost Rates data pipeline."
+authors = [{name="Balazs Roman", email="balazs.roman@tpximpact.com"}]
+requires-python = ">=3.13"
+dependencies = [
+    "data-pipeline-tools>=1.0.2",
+]
+
+[tool.uv.sources]
+data-pipeline-tools = { git = "https://github.com/tpximpact/data-pipeline-tools" }
